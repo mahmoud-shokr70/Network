@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Facility Network — Operations Documentation</title>
+<style>
+  :root{
+    --bg:#e8edf4;
+    --ink:#0f172a;
+    --muted:#64748b;
+    --line:#e2e8f0;
+    --lpc:#2563eb;
+    --gateway:#7c3aed;
+    --subg:#0d9488;
+    --hub:#d97706;
+    --ok:#16a34a;
+    --warn:#d97706;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family: system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1100px 520px at 12% -10%, #ffffff 0%, rgba(255,255,255,0) 55%),
+      var(--bg);
+    color:var(--ink);
+    padding:32px 20px;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .doc{
+    max-width:1520px;margin:0 auto;background:#fff;border-radius:16px;
+    box-shadow:0 30px 60px -28px rgba(15,23,42,.4), 0 2px 6px rgba(15,23,42,.06);
+    overflow:hidden;
+  }
+
+  /* Cover */
+  .cover{
+    padding:30px 40px 24px;color:#fff;
+    background:
+      radial-gradient(700px 220px at 85% -30%, rgba(56,189,248,.35), rgba(0,0,0,0) 60%),
+      linear-gradient(120deg,#0f172a 0%, #1e293b 60%, #263449 100%);
+  }
+  .cover .kicker{font-size:12px;letter-spacing:.22em;font-weight:800;color:#7dd3fc;text-transform:uppercase;}
+  .cover h1{margin:8px 0 6px;font-size:30px;font-weight:800;letter-spacing:.2px;}
+  .cover p{margin:0;font-size:14.5px;color:#cbd5e1;max-width:820px;}
+  .meta{display:flex;flex-wrap:wrap;gap:22px;margin-top:18px;}
+  .meta .m{display:flex;flex-direction:column;}
+  .meta .m .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;font-weight:700;}
+  .meta .m .val{font-size:15px;font-weight:800;color:#fff;margin-top:2px;}
+  .actions{display:flex;gap:12px;margin-top:20px;flex-wrap:wrap;}
+  .btn{display:inline-flex;align-items:center;gap:8px;background:#0ea5e9;color:#fff;font-weight:800;font-size:13.5px;padding:10px 16px;border-radius:10px;text-decoration:none;border:1px solid rgba(255,255,255,.15);}
+  .btn:hover{background:#0284c7;}
+  .btn.ghost{background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.25);}
+  .btn.ghost:hover{background:rgba(255,255,255,.18);}
+
+  .wrap{padding:30px 40px 38px;}
+
+  /* section heading */
+  .sec{display:flex;align-items:center;gap:12px;margin:34px 0 16px;}
+  .sec:first-of-type{margin-top:4px;}
+  .sec .no{
+    width:30px;height:30px;border-radius:9px;background:#0f172a;color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;
+  }
+  .sec h2{margin:0;font-size:19px;font-weight:800;letter-spacing:.2px;}
+  .sec .hint{font-size:13px;color:#94a3b8;font-weight:600;margin-left:4px;}
+
+  /* overview text */
+  .lead{font-size:15px;color:#334155;max-width:1050px;}
+  .lead b{color:#0f172a;}
+
+  /* stat cards */
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:6px;}
+  .stat{
+    border:1px solid var(--line);border-radius:14px;padding:16px 18px;background:#f8fafc;
+    border-top:3px solid #0f172a;
+  }
+  .stat .n{font-size:30px;font-weight:800;letter-spacing:-.5px;}
+  .stat .t{font-size:12.5px;color:#64748b;font-weight:700;margin-top:3px;}
+  .stat .d{font-size:11.5px;color:#94a3b8;margin-top:6px;}
+  .stat.s-lpc{border-top-color:var(--lpc);}
+  .stat.s-gw{border-top-color:var(--gateway);}
+  .stat.s-sg{border-top-color:var(--subg);}
+  .stat.s-hub{border-top-color:var(--hub);}
+  .stat.s-ok{border-top-color:var(--ok);}
+
+  /* DIAGRAM (flow) */
+  .cols{
+    display:grid;grid-template-columns: 220px 52px 372px 52px 1fr;
+    align-items:center;gap:10px;padding:0 4px 12px;
+  }
+  .cols .cap{font-size:11px;letter-spacing:.16em;font-weight:800;color:#94a3b8;text-transform:uppercase;}
+  .row{
+    display:grid;grid-template-columns: 220px 52px 372px 52px 1fr;
+    align-items:center;gap:10px;padding:12px 4px;border-radius:14px;
+  }
+  .row + .row{margin-top:8px;}
+  .recv{border:1.5px dashed #cbd5e1;border-radius:12px;padding:13px 15px;background:#fff;}
+  .recv .rl{font-size:11px;letter-spacing:.12em;font-weight:800;color:#94a3b8;text-transform:uppercase;}
+  .recv .rv{margin-top:6px;font-size:18px;font-weight:800;color:#334155;line-height:1.2;}
+  .recv .rin{color:#94a3b8;font-size:12px;margin-top:3px;}
+  .conn{display:flex;align-items:center;justify-content:center;}
+  .fac{
+    border-radius:14px;padding:14px 16px;color:#fff;position:relative;overflow:hidden;
+    min-height:98px;display:flex;flex-direction:column;justify-content:center;
+    box-shadow:0 10px 22px -12px rgba(15,23,42,.5);
+  }
+  .fac .zone{align-self:flex-start;font-size:11px;font-weight:800;letter-spacing:.05em;
+    background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);padding:3px 10px;border-radius:999px;text-transform:uppercase;}
+  .fac .name{margin-top:8px;font-size:23px;font-weight:800;display:flex;align-items:center;gap:10px;}
+  .fac .name .ic{width:29px;height:29px;border-radius:9px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:15px;}
+  .fac .code{margin-top:8px;align-self:flex-start;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;font-weight:700;
+    background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.30);padding:3px 10px;border-radius:8px;}
+  .fac .cnt{margin-top:7px;font-size:12px;font-weight:600;color:rgba(255,255,255,.85);}
+  .fac .cnt b{font-size:14px;}
+  .fac .bar{position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0));}
+  .ship{display:flex;flex-direction:column;gap:9px;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .chip{font-size:13.5px;font-weight:700;padding:7px 11px;border-radius:10px;border:1.5px solid;white-space:nowrap;}
+  .chip.cai{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;}
+  .chip.alx{background:#ecfdf5;color:#047857;border-color:#a7f3d0;}
+  .chip.carrier{background:#fff7ed;color:#c2410c;border-color:#fed7aa;border-style:dashed;}
+  .chip.relay{background:#f5f3ff;color:#6d28d9;border-color:#c4b5fd;border-style:dotted;font-weight:800;box-shadow:0 0 0 3px rgba(124,58,237,.08);}
+  .chip.relay .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#8b5cf6;margin-right:7px;vertical-align:middle;}
+  .shipnote{font-size:11.5px;color:#8b5cf6;font-weight:600;}
+  .shipnote.plain{color:#94a3b8;}
+
+  /* DETAIL TABLE */
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;}
+  table.spec{border-collapse:collapse;width:100%;min-width:1200px;font-size:13.5px;}
+  table.spec thead th{
+    background:#0f172a;color:#fff;text-align:left;font-weight:800;font-size:11.5px;
+    letter-spacing:.04em;text-transform:uppercase;padding:13px 14px;white-space:nowrap;position:sticky;top:0;
+  }
+  table.spec tbody td{padding:13px 14px;border-top:1px solid var(--line);vertical-align:top;color:#1e293b;}
+  table.spec tbody tr:nth-child(even){background:#f8fafc;}
+  table.spec tbody tr:hover{background:#f1f5f9;}
+  td .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:700;color:#0f172a;}
+  td .facname{font-weight:800;display:flex;align-items:center;gap:9px;}
+  td .facname .sw{width:12px;height:12px;border-radius:4px;flex:none;}
+  .zone-pill{font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px;background:#eef2f7;color:#475569;border:1px solid #dbe2ea;white-space:nowrap;}
+  .chips-sm{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip-sm{font-size:12px;font-weight:700;padding:4px 8px;border-radius:7px;border:1px solid #e2e8f0;background:#f8fafc;color:#334155;white-space:nowrap;}
+  .chip-sm.alx{background:#ecfdf5;color:#047857;border-color:#a7f3d0;}
+  .chip-sm.relay{background:#f5f3ff;color:#6d28d9;border-color:#c4b5fd;}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;padding:4px 11px;border-radius:999px;white-space:nowrap;}
+  .badge .b-dot{width:8px;height:8px;border-radius:50%;}
+  .badge.ok{background:#ecfdf5;color:#15803d;border:1px solid #a7f3d0;}
+  .badge.ok .b-dot{background:var(--ok);}
+  .note{color:#475569;font-size:13px;}
+  .note .tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;padding:2px 7px;border-radius:6px;margin-right:6px;}
+  .tag.warn{background:#fef3c7;color:#b45309;}
+  .tag.info{background:#dbeafe;color:#1d4ed8;}
+  .num{font-family:ui-monospace,monospace;font-weight:800;font-size:15px;}
+  .muted{color:#cbd5e1;}
+
+  /* callouts */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .callout{border-radius:14px;padding:16px 18px;font-size:14px;border:1px solid;}
+  .callout h3{margin:0 0 10px;font-size:14px;font-weight:800;letter-spacing:.02em;display:flex;align-items:center;gap:9px;}
+  .callout ul{margin:0;padding-left:18px;}
+  .callout li{margin:6px 0;color:#334155;}
+  .callout.open{background:#fffbeb;border-color:#fde68a;}
+  .callout.open h3{color:#b45309;}
+  .callout.key{background:#f0f9ff;border-color:#bae6fd;}
+  .callout.key h3{color:#0369a1;}
+  .callout .lg{display:flex;align-items:center;gap:9px;}
+  .callout .lg .sw{width:14px;height:14px;border-radius:4px;flex:none;}
+
+  .foot{border-top:1px solid var(--line);padding:16px 40px;font-size:12.5px;color:#94a3b8;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .foot b{color:#64748b;}
+
+  @media print{
+    body{background:#fff;padding:0;}
+    .doc{box-shadow:none;border-radius:0;}
+    .row:hover, table.spec tbody tr:hover{background:transparent;}
+  }
+</style>
+</head>
+<body>
+  <div class="doc">
+    <!-- COVER -->
+    <div class="cover">
+      <div class="kicker">Operations Documentation</div>
+      <h1>Facility Network &mdash; Receiving &amp; Ships-To Specification</h1>
+      <p>Reference map of the four facility types (LPC, Gateway, Sub-gateway, Hub) across the Cairo, Giza and Alexandria zones &mdash; covering inbound receiving, outbound destinations, each node's role in the network, and current validation status.</p>
+      <div class="meta">
+        <div class="m"><span class="lbl">Document</span><span class="val">Facility Network Spec</span></div>
+        <div class="m"><span class="lbl">Version</span><span class="val">v1.0</span></div>
+        <div class="m"><span class="lbl">Prepared</span><span class="val">1 Oct 2026</span></div>
+        <div class="m"><span class="lbl">Facilities</span><span class="val">4</span></div>
+        <div class="m"><span class="lbl">Zones</span><span class="val">3</span></div>
+        <div class="m"><span class="lbl">Overall Status</span><span class="val" style="color:#86efac">All Confirmed</span></div>
+      </div>
+      <div class="actions">
+        <a class="btn" href="facility_network_documentation.pdf" download>&#11015; Download PDF</a>
+        <a class="btn ghost" href="diagram.png" target="_blank" rel="noopener">&#11015; Diagram (PNG)</a>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <!-- 1. OVERVIEW -->
+      <div class="sec"><div class="no">1</div><h2>Overview</h2></div>
+      <p class="lead">
+        The network is built from <b>four facility types</b> that receive inbound volume and dispatch it onward.
+        Each node is identified by a <b>facility code</b> (city prefix + area, e.g. <b>CAI-G1</b>, <b>ALY-A1</b>) and sits in one of three zones.
+        The <b>Gateway (CAI-G1)</b> acts as the central relay: several facilities ship <b>to</b> CAI-G1, and CAI-G1 then sends onward to other hubs.
+        Every facility below is currently marked <b>Confirmed</b>.
+      </p>
+
+      <div class="stats">
+        <div class="stat s-lpc"><div class="n">CAI-Z2</div><div class="t">LPC · Cairo</div><div class="d">5 outbound routes</div></div>
+        <div class="stat s-gw"><div class="n">CAI-G1</div><div class="t">Gateway · Cairo</div><div class="d">8 outbound routes · relay</div></div>
+        <div class="stat s-sg"><div class="n">CAI-G5</div><div class="t">Sub-gateway · Giza</div><div class="d">5 outbound routes</div></div>
+        <div class="stat s-hub"><div class="n">ALY-A1</div><div class="t">Hub · Alexandria</div><div class="d">1 outbound route</div></div>
+        <div class="stat s-ok"><div class="n">100%</div><div class="t">Confirmed</div><div class="d">4 / 4 facilities</div></div>
+      </div>
+
+      <!-- 2. FLOW DIAGRAM -->
+      <div class="sec"><div class="no">2</div><h2>Network Flow</h2><span class="hint">Receiving &rarr; Facility &rarr; Ships To</span></div>
+      <div class="cols">
+        <div class="cap">Receiving (input)</div>
+        <div></div>
+        <div class="cap">Facility (code · zone)</div>
+        <div></div>
+        <div class="cap">Ships to (destinations)</div>
+      </div>
+
+      <!-- LPC -->
+      <div class="row">
+        <div class="recv"><div class="rl">Receiving</div><div class="rv">CAI04</div><div class="rin">inbound source</div></div>
+        <div class="conn"><svg width="52" height="20" viewBox="0 0 52 20"><line x1="2" y1="10" x2="38" y2="10" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/><polygon points="38,3 50,10 38,17" fill="#94a3b8"/></svg></div>
+        <div class="fac" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
+          <span class="bar"></span><span class="zone">Cairo</span>
+          <div class="name"><span class="ic">&#9881;</span>LPC</div>
+          <div class="code">CAI-Z2</div>
+          <div class="cnt"><b>5</b> outbound routes</div>
+        </div>
+        <div class="conn"><svg width="52" height="20" viewBox="0 0 52 20"><line x1="2" y1="10" x2="38" y2="10" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/><polygon points="38,3 50,10 38,17" fill="#94a3b8"/></svg></div>
+        <div class="ship">
+          <div class="chips">
+            <span class="chip cai">CAI-C5</span>
+            <span class="chip cai">CAI-B5</span>
+            <span class="chip alx">ALX-A1</span>
+            <span class="chip cai">CAI-A9</span>
+            <span class="chip relay"><span class="dot"></span>CAI-G1 · Gateway</span>
+          </div>
+          <div class="shipnote plain">CAI-G1 = the Gateway (relay node).</div>
+        </div>
+      </div>
+
+      <!-- Gateway -->
+      <div class="row">
+        <div class="recv"><div class="rl">Receiving</div><div class="rv">All facility</div><div class="rin">consolidated intake</div></div>
+        <div class="conn"><svg width="52" height="20" viewBox="0 0 52 20"><line x1="2" y1="10" x2="38" y2="10" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/><polygon points="38,3 50,10 38,17" fill="#94a3b8"/></svg></div>
+        <div class="fac" style="background:linear-gradient(135deg,#8b5cf6,#6d28d9)">
+          <span class="bar"></span><span class="zone">Cairo</span>
+          <div class="name"><span class="ic">&#8644;</span>Gateway</div>
+          <div class="code">CAI-G1</div>
+          <div class="cnt"><b>8</b> outbound routes · relay</div>
+        </div>
+        <div class="conn"><svg width="52" height="20" viewBox="0 0 52 20"><line x1="2" y1="10" x2="38" y2="10" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/><polygon points="38,3 50,10 38,17" fill="#94a3b8"/></svg></div>
+        <div class="ship">
+          <div class="chips">
+            <span class="chip cai">CAI-A3</span>
+            <span class="chip carrier">ADM hubs · all tiers</span>
+            <span class="chip carrier">J&amp;T · all tiers</span>
+            <span class="chip cai">CAI-B8</span>
+            <span class="chip cai">CAI-A1</span>
+            <span class="chip cai">CAI-B9</span>
+            <span class="chip cai">CAI-C3</span>
+            <span class="chip cai">CAI-B5</span>
+          </div>
+          <div class="shipnote">Gateway (CAI-G1) sends onward to other hubs.</div>
+        </div>
+      </div>
+
+      <!-- Sub-gateway -->
+      <div class="row">
+        <div class="recv"><div class="rl">Receiving</div><div class="rv">FM DAs</div><div class="rin">inbound source</div></div>
+        <div class="conn"><svg width="52" height="20" viewBox="0 0 52 20"><line x1="2" y1="10" x2="38" y2="10" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/><polygon points="38,3 50,10 38,17" fill="#94a3b8"/></svg></div>
+        <div class="fac" style="background:linear-gradient(135deg,#14b8a6,#0f766e)">
+          <span class="bar"></span><span class="zone">Giza</span>
+          <div class="name"><span class="ic">&#9707;</span>Sub-gateway</div>
+          <div class="code">CAI-G5</div>
+          <div class="cnt"><b>5</b> outbound routes</div>
+        </div>
+        <div class="conn"><svg width="52" height="20" viewBox="0 0 52 20"><line x1="2" y1="10" x2="38" y2="10" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/><polygon points="38,3 50,10 38,17" fill="#94a3b8"/></svg></div>
+        <div class="ship">
+          <div class="chips">
+            <span class="chip cai">CAI-A2</span>
+            <span class="chip cai">CAI-A4</span>
+            <span class="chip cai">CAI-A8</span>
+            <span class="chip cai">CAI-C4</span>
+            <span class="chip cai">CAI-C8</span>
+          </div>
+          <div class="shipnote">Other will ship to CAI-G1, and G1 will send to other hubs.</div>
+        </div>
+      </div>
+
+      <!-- Hub -->
+      <div class="row">
+        <div class="recv"><div class="rl">Receiving</div><div class="rv">FM DAs ALEX</div><div class="rin">inbound source</div></div>
+        <div class="conn"><svg width="52" height="20" viewBox="0 0 52 20"><line x1="2" y1="10" x2="38" y2="10" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/><polygon points="38,3 50,10 38,17" fill="#94a3b8"/></svg></div>
+        <div class="fac" style="background:linear-gradient(135deg,#f59e0b,#b45309)">
+          <span class="bar"></span><span class="zone">Alexandria</span>
+          <div class="name"><span class="ic">&#9873;</span>Hub</div>
+          <div class="code">ALY-A1</div>
+          <div class="cnt"><b>1</b> outbound route</div>
+        </div>
+        <div class="conn"><svg width="52" height="20" viewBox="0 0 52 20"><line x1="2" y1="10" x2="38" y2="10" stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round"/><polygon points="38,3 50,10 38,17" fill="#94a3b8"/></svg></div>
+        <div class="ship">
+          <div class="chips">
+            <span class="chip relay"><span class="dot"></span>CAI-G1 · Gateway</span>
+          </div>
+          <div class="shipnote plain">Ships to the Gateway (CAI-G1).</div>
+        </div>
+      </div>
+
+      <!-- 3. DETAILED SPEC -->
+      <div class="sec"><div class="no">3</div><h2>Detailed Specification</h2><span class="hint">all fields from the network sheet</span></div>
+      <div class="tbl-wrap">
+        <table class="spec">
+          <thead>
+            <tr>
+              <th>Facility Code</th>
+              <th>Facility Name</th>
+              <th>Type</th>
+              <th>Zone</th>
+              <th>Receiving</th>
+              <th>Ships To</th>
+              <th>Role in Network</th>
+              <th>Status</th>
+              <th>Notes</th>
+              <th># Lines</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- LPC -->
+            <tr>
+              <td><span class="mono">CAI-Z2</span></td>
+              <td class="muted">&mdash;</td>
+              <td><span class="facname"><span class="sw" style="background:var(--lpc)"></span>LPC</span></td>
+              <td><span class="zone-pill">Cairo</span></td>
+              <td><span class="mono">CAI04</span></td>
+              <td><div class="chips-sm">
+                <span class="chip-sm">CAI-C5</span><span class="chip-sm">CAI-B5</span><span class="chip-sm alx">ALX-A1</span><span class="chip-sm">CAI-A9</span><span class="chip-sm relay">CAI-G1</span>
+              </div></td>
+              <td class="note">LPC in New Network (CAI04).</td>
+              <td><span class="badge ok"><span class="b-dot"></span>Confirmed</span></td>
+              <td class="note"><span class="tag info">info</span>Ships to Gateway (CAI-G1) plus 4 Cairo/Alexandria points.</td>
+              <td><span class="num">5</span></td>
+            </tr>
+            <!-- Gateway -->
+            <tr>
+              <td><span class="mono">CAI-G1</span></td>
+              <td class="muted">&mdash;</td>
+              <td><span class="facname"><span class="sw" style="background:var(--gateway)"></span>Gateway</span></td>
+              <td><span class="zone-pill">Cairo</span></td>
+              <td><span class="mono">All facility</span></td>
+              <td><div class="chips-sm">
+                <span class="chip-sm">CAI-A3</span><span class="chip-sm">ADM hubs (all tiers)</span><span class="chip-sm">J&amp;T (all tiers)</span><span class="chip-sm">CAI-B8</span><span class="chip-sm">CAI-A1</span><span class="chip-sm">CAI-B9</span><span class="chip-sm">CAI-C3</span><span class="chip-sm">CAI-B5</span>
+              </div></td>
+              <td class="note">Consolidation &amp; relay: receives from all facilities, dispatches to ADM/J&amp;T hubs and Cairo points; sends onward to other hubs.</td>
+              <td><span class="badge ok"><span class="b-dot"></span>Confirmed</span></td>
+              <td class="note"><span class="tag info">info</span>Also receives OPC5 (CAI-3 / CAI09); confirms unchanged.</td>
+              <td><span class="num">8</span></td>
+            </tr>
+            <!-- Sub-gateway -->
+            <tr>
+              <td><span class="mono">CAI-G5</span></td>
+              <td class="muted">&mdash;</td>
+              <td><span class="facname"><span class="sw" style="background:var(--subg)"></span>Sub-gateway</span></td>
+              <td><span class="zone-pill">Giza</span></td>
+              <td><span class="mono">FM DAs</span></td>
+              <td><div class="chips-sm">
+                <span class="chip-sm">CAI-A2</span><span class="chip-sm">CAI-A4</span><span class="chip-sm">CAI-A8</span><span class="chip-sm">CAI-C4</span><span class="chip-sm">CAI-C8</span>
+              </div></td>
+              <td class="note">Receiving from FM DAs, dispatching to Cairo points (CAI-A2/A4/A8/C4/C8).</td>
+              <td><span class="badge ok"><span class="b-dot"></span>Confirmed</span></td>
+              <td class="note"><span class="tag info">info</span>Receiving from FM DAs: CAI-A2, CAI-A4, CAI-A8, CAI-C4, CAI-C8.</td>
+              <td><span class="num">0</span></td>
+            </tr>
+            <!-- Hub -->
+            <tr>
+              <td><span class="mono">ALY-A1</span></td>
+              <td class="muted">&mdash;</td>
+              <td><span class="facname"><span class="sw" style="background:var(--hub)"></span>Hub</span></td>
+              <td><span class="zone-pill">Alexandria</span></td>
+              <td><span class="mono">FM DAs ALEX</span></td>
+              <td><div class="chips-sm"><span class="chip-sm relay">CAI-G1</span></div></td>
+              <td class="note">Receiving DS volume and dispatch to CAI-G1 (Gateway).</td>
+              <td><span class="badge ok"><span class="b-dot"></span>Confirmed</span></td>
+              <td class="note"><span class="tag warn">open</span>Facility type to confirm.</td>
+              <td><span class="num">0</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 4. LEGEND + OPEN ITEMS -->
+      <div class="sec"><div class="no">4</div><h2>Legend &amp; Open Items</h2></div>
+      <div class="grid2">
+        <div class="callout key">
+          <h3>&#128205; Legend / Key</h3>
+          <div class="lg"><span class="sw" style="background:#bfdbfe"></span>Cairo facility (CAI-*)</div>
+          <div class="lg" style="margin-top:7px"><span class="sw" style="background:#a7f3d0"></span>Alexandria facility (ALX-/ALY-*)</div>
+          <div class="lg" style="margin-top:7px"><span class="sw" style="background:#fed7aa"></span>Carrier / hub partner (ADM, J&amp;T)</div>
+          <div class="lg" style="margin-top:7px"><span class="sw" style="background:#c4b5fd"></span>Gateway / relay node &mdash; CAI-G1</div>
+        </div>
+        <div class="callout open">
+          <h3>&#9888;&#65039; Open / To-confirm</h3>
+          <ul>
+            <li><b>Hub (ALY-A1):</b> facility type flagged as <i>to confirm</i>.</li>
+            <li><b>Gateway (CAI-G1):</b> also receives OPC5 (CAI-3 / CAI09) &mdash; confirm scope.</li>
+            <li><b>ALX-A1 vs ALY-A1:</b> LPC ships to <b>ALX-A1</b>; the Hub is coded <b>ALY-A1</b> &mdash; confirm if same site.</li>
+            <li><b># Lines:</b> auto field shows 8 (Gateway), 0 (Sub-gateway, Hub) &mdash; verify counts.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span><b>Facility Network Specification</b> · v1.0 · 1 Oct 2026</span>
+      <span>4 facility types · 3 zones · 19 route legs · all facilities Confirmed</span>
+    </div>
+  </div>
+</body>
+</html>
